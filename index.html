@@ -48,20 +48,25 @@
     }
 
     .shell {
-      width: 100%;
-      max-width: 960px;
-      background:
-        radial-gradient(circle at top left, rgba(16, 185, 129, 0.3), transparent 55%),
-        linear-gradient(135deg, rgba(15, 118, 110, 0.9), rgba(6, 78, 59, 0.98));
-      border-radius: 24px;
-      box-shadow:
-        0 30px 80px rgba(0, 0, 0, 0.45),
-        0 0 0 1px rgba(15, 118, 110, 0.6);
-      padding: 28px 28px 24px;
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      backdrop-filter: blur(22px);
-      animation: shellFloatIn 0.9s ease-out;
-    }
+  width: 100%;
+  max-width: 960px;
+  background:
+    radial-gradient(circle at top left, rgba(16, 185, 129, 0.3), transparent 55%),
+    linear-gradient(135deg, rgba(15, 118, 110, 0.9), rgba(6, 78, 59, 0.98));
+  border-radius: 24px;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(15, 118, 110, 0.6);
+  padding: 28px 28px 24px;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  backdrop-filter: blur(22px);
+  animation: shellFloatIn 0.9s ease-out;
+
+  /* NEW: make shell the positioning context and clip the viz */
+  position: relative;
+  overflow: hidden;
+}
+
 
     @keyframes shellFloatIn {
       from {
@@ -425,24 +430,28 @@
     .button-row { gap: 10px; }
     .button-row .btn { flex: 0 1 48%; min-width: 110px; }
 
-    @media (max-width: 480px) {
-      .button-row .btn { flex: 1 1 100%; }
-      #cornerViz { right: 12px; bottom: 12px; width: 110px; height: 110px; }
-    }
+@media (max-width: 480px) {
+  .button-row .btn { flex: 1 1 100%; }
+  #cornerViz {
+    width: 100px;    /* just make it narrower on small screens */
+  }
+}
+
 
     /* Corner visualization canvas */
-    #cornerViz {
-      position: fixed;
-      right: 0;
-      bottom: 0;
-      top: 0;
-      width: 140px;
-      pointer-events: none;
-      z-index: 30;
-      opacity: 0.95;
-      mix-blend-mode: screen;
-      filter: drop-shadow(-6px 0 18px rgba(2,36,28,0.35));
-    }
+/* Corner visualization canvas */
+#cornerViz {
+  position: absolute;      /* relative to .shell now */
+  top: 0;
+  right: 0;
+  bottom: 0;               /* stretch full height of the shell */
+  width: 140px;            /* narrow strip on the right */
+  pointer-events: none;
+  z-index: 0;              /* behind cards/content */
+  opacity: 0.95;
+  mix-blend-mode: screen;
+  filter: drop-shadow(-6px 0 18px rgba(2,36,28,0.35));
+}
   </style>
 </head>
 <body>
@@ -541,9 +550,8 @@
         </div>
       </div>
     </div>
+    <canvas id="cornerViz" aria-hidden="true"></canvas>
   </div>
-
-  <canvas id="cornerViz" aria-hidden="true"></canvas>
 
   <script src="viz.js" defer></script>
 
