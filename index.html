@@ -830,6 +830,8 @@
     });
 
     // Pull raw CSV directly from Qualtrics and preload it into the upload area
+// Pull raw CSV directly from Qualtrics, preload it into the upload area,
+// **and** trigger a download so you can inspect the raw API export.
 btnQualtricsSource.addEventListener("click", async (e) => {
   e.preventDefault();
 
@@ -847,8 +849,20 @@ btnQualtricsSource.addEventListener("click", async (e) => {
     }
 
     const blob = await res.blob();
-    // Create a synthetic File and inject it into the file input
-    const file = new File([blob], "qualtrics_export.csv", { type: "text/csv" });
+
+    // 1) Trigger a browser download of the raw CSV (so you can diff it vs manual export)
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "qualtrics_export_from_api.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    // 2) Also create a synthetic File and inject it into the file input,
+    // so you can immediately run Account/Test ETL on the same export
+    const file = new File([blob], "qualtrics_export_from_api.csv", { type: "text/csv" });
     const dt = new DataTransfer();
     dt.items.add(file);
     fileInput.files = dt.files;
@@ -867,6 +881,7 @@ btnQualtricsSource.addEventListener("click", async (e) => {
     setButtonsDisabled(false);
   }
 });
+
 
 
     /* Intro overlay / personalization */
