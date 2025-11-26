@@ -557,7 +557,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
-              Account Cut
+              Account-Level Cut
             </button>
             <button class="btn btn-secondary" id="btnTest">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -753,10 +753,18 @@
         }
 
         const blob = await response.blob();
+        
+        // Generate filename with date, time, and data type
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        // const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS
+        const dataType = path.includes('accounts') ? 'Account' : 'TestLevel';
+        let filename = `Dec_Pulse_${dataType}_${dateStr}.xlsx`;
+        
+        // Check if server provided a filename and use it as fallback
         const disposition = response.headers.get("Content-Disposition") || "";
-        let filename = "output.xlsx";
         const match = disposition.match(/filename="?([^"]+)"?/);
-        if (match && match[1]) {
+        if (match && match[1] && match[1] !== "output.xlsx") {
           filename = match[1];
         }
 
