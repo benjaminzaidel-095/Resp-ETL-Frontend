@@ -77,6 +77,7 @@
     .header {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -109,6 +110,61 @@
       gap: 6px;
       background: rgba(6, 95, 70, 0.7);
       color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .user-avatar:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .progress-container {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .progress-container.active {
+      display: block;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(6, 78, 59, 0.6);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+      width: 0%;
+      transition: width 0.2s ease;
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.6);
+    }
+
+    .progress-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
     }
 
     .pill-dot {
@@ -227,13 +283,13 @@
     .button-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       margin-top: 16px;
     }
 
     .btn {
-      flex: 1;
-      min-width: 120px;
+      flex: 1 1 calc(50% - 5px);
+      min-width: 90px;
       padding: 9px 12px;
       border-radius: 999px;
       border: 1px solid rgba(52, 211, 153, 0.65);
@@ -400,9 +456,14 @@
           <strong>Test-level</strong> cuts with the exact header structure your slides expect.
         </div>
       </div>
-      <div class="pill">
-        <div class="pill-dot"></div>
-        <span>API: respiratory-trends-survey-etl</span>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <div class="pill">
+          <div class="pill-dot"></div>
+          <span>API: respiratory-trends-survey-etl</span>
+        </div>
+        <div id="userAvatarContainer" style="display: none;">
+          <div class="user-avatar" id="userAvatar" title="Click to see your name"></div>
+        </div>
       </div>
     </div>
 
@@ -443,6 +504,13 @@
 
         <div id="status" class="status">
           <span>Upload a Qualtrics CSV to get started.</span>
+        </div>
+
+        <div id="progressContainer" class="progress-container">
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <div class="progress-text">Processing... <span id="progressPercent">0</span>%</div>
         </div>
       </div>
 
@@ -581,6 +649,22 @@
 
       setButtonsDisabled(true);
       setStatus("Processing… this may take a few seconds on large exports.", null);
+      
+      const progressContainer = document.getElementById('progressContainer');
+      const progressFill = document.getElementById('progressFill');
+      const progressPercent = document.getElementById('progressPercent');
+      progressContainer.classList.add('active');
+      progressFill.style.width = '5%';
+      progressPercent.textContent = '5';
+      
+      let progressInterval = setInterval(() => {
+        const current = parseFloat(progressFill.style.width);
+        if (current < 90) {
+          const next = current + Math.random() * 20;
+          progressFill.style.width = Math.min(next, 90) + '%';
+          progressPercent.textContent = Math.floor(Math.min(next, 90));
+        }
+      }, 400);
 
       try {
         const response = await fetch(API_BASE + path, {
@@ -607,6 +691,10 @@
           filename = match[1];
         }
 
+        clearInterval(progressInterval);
+        progressFill.style.width = '100%';
+        progressPercent.textContent = '100';
+
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -617,8 +705,14 @@
         URL.revokeObjectURL(url);
 
         setStatus("Download started: " + filename, "success");
+        setTimeout(() => {
+          progressContainer.classList.remove('active');
+          progressFill.style.width = '0%';
+        }, 1500);
       } catch (err) {
         console.error(err);
+        clearInterval(progressInterval);
+        progressContainer.classList.remove('active');
         setStatus("Error: " + err.message, "error");
       } finally {
         setButtonsDisabled(false);
@@ -687,7 +781,24 @@
 
       function getStoredName() { return localStorage.getItem('rts_userName'); }
       function setStoredName(v) { if (v) localStorage.setItem('rts_userName', v); else localStorage.removeItem('rts_userName'); }
-      function hideIntro() { overlay.style.display = 'none'; localStorage.setItem('rts_seenIntro', '1'); }
+      function hideIntro() { 
+        overlay.style.display = 'none'; 
+        localStorage.setItem('rts_seenIntro', '1');
+        // Show avatar if user has a name
+        updateUserAvatar();
+      }
+      
+      function updateUserAvatar() {
+        const stored = getStoredName();
+        if (stored) {
+          const initial = stored.charAt(0).toUpperCase();
+          document.getElementById('userAvatar').textContent = initial;
+          document.getElementById('userAvatarContainer').style.display = 'block';
+          document.getElementById('userAvatar').addEventListener('click', () => {
+            if (window.cornerVizPulse) window.cornerVizPulse();
+          });
+        }
+      }
 
       // Decide whether to show
       const qname = qs('name');
@@ -696,6 +807,7 @@
 
       if (hideFlag === '1' && !qname) {
         overlay.style.display = 'none';
+        updateUserAvatar();
       } else {
         overlay.style.display = 'flex';
         // populate name
@@ -729,6 +841,11 @@
 
       // If URL provided a name but user didn't click, still set stored name silently
       if (qname && !stored) setStoredName(decodeURIComponent(qname));
+      
+      // Show avatar on page load if user has a name and intro is hidden
+      if (hideFlag === '1' || qname) {
+        updateUserAvatar();
+      }
     })();
   </script>
 </body>
