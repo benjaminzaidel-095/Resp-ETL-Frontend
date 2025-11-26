@@ -141,35 +141,41 @@
     }
 
     .progress-container {
-      margin-top: 10px;
+      margin-top: 0;
       display: none;
+      gap: 8px;
     }
 
     .progress-container.active {
-      display: block;
+      display: flex;
+      flex-direction: column;
     }
 
     .progress-bar {
       width: 100%;
-      height: 4px;
-      background: rgba(6, 78, 59, 0.6);
+      height: 6px;
+      background: rgba(6, 78, 59, 0.8);
       border-radius: 999px;
       overflow: hidden;
       border: 1px solid rgba(16, 185, 129, 0.2);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+      background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #10b981 100%);
       width: 0%;
-      transition: width 0.2s ease;
-      box-shadow: 0 0 10px rgba(52, 211, 153, 0.6);
+      transition: width 0.3s ease;
+      box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+      border-radius: 999px;
     }
 
     .progress-text {
       font-size: 11px;
       color: var(--text-muted);
-      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .pill-dot {
@@ -231,53 +237,82 @@
       color: var(--text-main);
     }
 
-    .upload-area {
-      border: 1px dashed var(--border-subtle);
-      border-radius: 14px;
-      padding: 26px 22px;
-      background: rgba(6, 78, 59, 0.35);
+    .upload-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .upload-drop-zone {
+      position: relative;
+      border: 2px dashed rgba(16, 185, 129, 0.3);
+      border-radius: 16px;
+      padding: 32px 24px;
+      background: linear-gradient(135deg, rgba(6, 95, 70, 0.15), rgba(4, 120, 87, 0.1));
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+      transition: all 0.25s ease;
       outline: none;
     }
 
-    .upload-area:hover,
-    .upload-area:focus-visible {
+    .upload-drop-zone:hover,
+    .upload-drop-zone:focus-visible {
       border-color: var(--accent);
-      background: rgba(6, 78, 59, 0.55);
-      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.25);
+      background: linear-gradient(135deg, rgba(6, 95, 70, 0.3), rgba(4, 120, 87, 0.25));
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
     }
 
-    .upload-area.has-file {
-      border-style: solid;
+    .upload-drop-zone.has-file {
       border-color: var(--accent);
-      background: rgba(6, 95, 70, 0.85);
-      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.3),
-                  0 15px 40px rgba(16, 185, 129, 0.2);
+      border-style: solid;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(10, 150, 100, 0.08));
+      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.3), 0 12px 32px rgba(16, 185, 129, 0.15);
+    }
+
+    .upload-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
     }
 
     .upload-icon {
-      margin-bottom: 10px;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(16, 185, 129, 0.1));
       color: var(--accent);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .upload-drop-zone:hover .upload-icon,
+    .upload-drop-zone:focus-visible .upload-icon {
+      transform: translateY(-4px);
+      background: linear-gradient(135deg, rgba(52, 211, 153, 0.25), rgba(16, 185, 129, 0.2));
     }
 
     .upload-title {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 4px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
     }
 
     .upload-hint {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-muted);
-      margin-bottom: 4px;
     }
 
     .upload-filename {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--accent);
+      font-weight: 600;
       margin-top: 8px;
+      padding: 8px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 8px;
       word-break: break-all;
     }
 
@@ -287,59 +322,63 @@
 
     .button-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
+      gap: 12px;
+      margin-top: 0;
     }
 
     .btn {
       flex: 1 1 auto;
       min-width: 100px;
-      padding: 9px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(52, 211, 153, 0.65);
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: #022c22;
+      padding: 11px 16px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: var(--text-main);
       font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
+      font-weight: 700;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      box-shadow:
-        0 12px 32px rgba(22, 163, 74, 0.45),
-        0 0 0 1px rgba(16, 185, 129, 0.4);
-      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+      opacity: 0;
     }
 
     .btn:hover:not(.btn-disabled) {
-      transform: translateY(-1px);
-      box-shadow:
-        0 18px 40px rgba(22, 163, 74, 0.55),
-        0 0 0 1px rgba(16, 185, 129, 0.7);
-      background: linear-gradient(135deg, #4ade80, #22c55e);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(16, 185, 129, 0.4);
+      background: linear-gradient(135deg, #34d399, #10b981);
     }
 
     .btn:active:not(.btn-disabled) {
       transform: translateY(0);
-      box-shadow:
-        0 8px 20px rgba(22, 163, 74, 0.5),
-        0 0 0 1px rgba(16, 185, 129, 0.8);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
     .btn-secondary {
-      background: linear-gradient(135deg, #064e3b, #065f46);
-      color: var(--text-main);
-      box-shadow:
-        0 10px 26px rgba(4, 120, 87, 0.5),
-        0 0 0 1px rgba(45, 212, 191, 0.6);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(10, 120, 87, 0.15));
+      color: var(--text-muted);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .btn-secondary:hover:not(.btn-disabled) {
-      background: linear-gradient(135deg, #047857, #059669);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(10, 120, 87, 0.25));
+      color: var(--text-main);
+      border-color: rgba(16, 185, 129, 0.6);
     }
 
     .btn-disabled {
@@ -350,29 +389,34 @@
     }
 
     .status {
-      margin-top: 10px;
+      margin-top: 0;
       font-size: 12px;
       min-height: 20px;
       color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .status span {
-      border-radius: 999px;
-      padding: 3px 10px;
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      background: rgba(6, 78, 59, 0.7);
+      border-radius: 6px;
+      padding: 6px 10px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(6, 78, 59, 0.5);
+      color: var(--text-muted);
+      font-size: 12px;
     }
 
     .status-error span {
-      border-color: rgba(248, 113, 113, 0.8);
-      background: rgba(127, 29, 29, 0.85);
-      color: #fee2e2;
+      border-color: rgba(248, 113, 113, 0.6);
+      background: rgba(127, 29, 29, 0.6);
+      color: #fca5a5;
     }
 
     .status-success span {
-      border-color: rgba(52, 211, 153, 0.9);
-      background: rgba(6, 95, 70, 0.9);
-      color: var(--text-main);
+      border-color: rgba(52, 211, 153, 0.6);
+      background: rgba(6, 95, 70, 0.7);
+      color: #d1fae5;
     }
 
     .panel-right-text {
@@ -479,46 +523,63 @@
       <!-- LEFT PANEL -->
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-title">Upload</div>
+          <div class="panel-title">Import Data</div>
           <div class="panel-badge">Qualtrics CSV</div>
         </div>
 
-        <label for="fileInput"
-               class="upload-area"
-               id="uploadArea"
-               role="button"
-               tabindex="0">
-          <svg class="upload-icon" width="32" height="32" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          <div class="upload-title">Drop your Qualtrics CSV here</div>
-          <div class="upload-hint">Or click to browse.</div>
-          <div id="filename" class="upload-filename"></div>
-        </label>
+        <div class="upload-section">
+          <label for="fileInput"
+                 class="upload-drop-zone"
+                 id="uploadArea"
+                 role="button"
+                 tabindex="0">
+            <div class="upload-content">
+              <div class="upload-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <div>
+                <div class="upload-title">Drop your CSV here</div>
+                <div class="upload-hint">or click to browse</div>
+              </div>
+              <div id="filename" class="upload-filename"></div>
+            </div>
+          </label>
 
-        <input id="fileInput" type="file" accept=".csv" />
+          <input id="fileInput" type="file" accept=".csv" style="display: none;" />
 
-        <div class="button-row">
-          <button class="btn" id="btnAccount">
-            Account Cut
-          </button>
-          <button class="btn btn-secondary" id="btnTest">
-            Test-Level Cut
-          </button>
-        </div>
-
-        <div id="status" class="status">
-          <span>Upload a Qualtrics CSV to get started.</span>
-        </div>
-
-        <div id="progressContainer" class="progress-container">
-          <div class="progress-bar">
-            <div id="progressFill" class="progress-fill"></div>
+          <div class="button-row">
+            <button class="btn" id="btnAccount">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Account Cut
+            </button>
+            <button class="btn btn-secondary" id="btnTest">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              Test-Level Cut
+            </button>
           </div>
-          <div class="progress-text">Processing... <span id="progressPercent">0</span>%</div>
+
+          <div id="status" class="status">
+            <span>Ready to upload</span>
+          </div>
+
+          <div id="progressContainer" class="progress-container">
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <div class="progress-text">
+              <span>Processing file...</span>
+              <span id="progressPercent">0</span>%
+            </div>
+          </div>
         </div>
       </div>
 
@@ -575,7 +636,7 @@
       if (message) {
         statusEl.innerHTML = "<span>" + message + "</span>";
       } else {
-        statusEl.innerHTML = "";
+        statusEl.innerHTML = "<span>Ready to upload</span>";
       }
     }
 
@@ -599,21 +660,22 @@
     // Drag & drop behaviour
     uploadArea.addEventListener("dragover", (e) => {
       e.preventDefault();
-      uploadArea.style.borderColor = "#34d399";
+      uploadArea.classList.add("has-file");
     });
 
     uploadArea.addEventListener("dragleave", (e) => {
       e.preventDefault();
-      uploadArea.style.borderColor = "";
+      if (!fileInput.files || !fileInput.files[0]) {
+        uploadArea.classList.remove("has-file");
+      }
     });
 
     uploadArea.addEventListener("drop", (e) => {
       e.preventDefault();
-      uploadArea.style.borderColor = "";
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
         const file = e.dataTransfer.files[0];
         fileInput.files = e.dataTransfer.files;
-        filenameEl.textContent = file.name;
+        filenameEl.textContent = "📄 " + file.name;
         markUploadArea(true);
         document.body.setAttribute('data-file-ready', '1');
         if (window.cornerVizPulse) window.cornerVizPulse();
@@ -631,7 +693,7 @@
 
     fileInput.addEventListener("change", () => {
       if (fileInput.files && fileInput.files[0]) {
-        filenameEl.textContent = fileInput.files[0].name;
+        filenameEl.textContent = "📄 " + fileInput.files[0].name;
         markUploadArea(true);
         document.body.setAttribute('data-file-ready', '1');
         if (window.cornerVizPulse) window.cornerVizPulse();
@@ -640,7 +702,7 @@
         filenameEl.textContent = "";
         markUploadArea(false);
         document.body.removeAttribute('data-file-ready');
-        setStatus("Upload a Qualtrics CSV to get started.", null);
+        setStatus("Ready to upload", null);
       }
     });
 
