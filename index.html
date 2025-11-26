@@ -361,6 +361,33 @@
       background: rgba(6, 78, 59, 0.85);
       color: var(--text-muted);
     }
+
+    /* Layout fixes and corner visualization styles */
+    .upload-area { overflow: visible; }
+
+    /* Make action buttons wrap cleanly and avoid being cut off */
+    .button-row { gap: 10px; }
+    .button-row .btn { flex: 0 1 48%; min-width: 110px; }
+
+    @media (max-width: 480px) {
+      .button-row .btn { flex: 1 1 100%; }
+      #cornerViz { right: 12px; bottom: 12px; width: 110px; height: 110px; }
+    }
+
+    /* Corner visualization canvas */
+    #cornerViz {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 140px;
+      height: 140px;
+      border-radius: 12px;
+      pointer-events: none;
+      z-index: 30;
+      opacity: 0.95;
+      mix-blend-mode: screen;
+      filter: drop-shadow(0 6px 18px rgba(2,36,28,0.45));
+    }
   </style>
 </head>
 <body>
@@ -449,6 +476,10 @@
     </div>
   </div>
 
+  <canvas id="cornerViz" aria-hidden="true"></canvas>
+
+  <script src="viz.js" defer></script>
+
   <script>
     const API_BASE = "https://respiratory-trends-survey-etl.onrender.com";
 
@@ -509,6 +540,8 @@
         fileInput.files = e.dataTransfer.files;
         filenameEl.textContent = file.name;
         markUploadArea(true);
+        document.body.setAttribute('data-file-ready', '1');
+        if (window.cornerVizPulse) window.cornerVizPulse();
         setStatus("File ready: " + file.name, null);
       }
     });
@@ -525,10 +558,13 @@
       if (fileInput.files && fileInput.files[0]) {
         filenameEl.textContent = fileInput.files[0].name;
         markUploadArea(true);
+        document.body.setAttribute('data-file-ready', '1');
+        if (window.cornerVizPulse) window.cornerVizPulse();
         setStatus("File ready: " + fileInput.files[0].name, null);
       } else {
         filenameEl.textContent = "";
         markUploadArea(false);
+        document.body.removeAttribute('data-file-ready');
         setStatus("Upload a Qualtrics CSV to get started.", null);
       }
     });
@@ -598,6 +634,102 @@
       e.preventDefault();
       callEndpoint("/process/tests");
     });
+
+    /* Intro overlay / personalization */
+    (function () {
+      function qs(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+      }
+
+      const introHtml = `
+      <div id="introOverlay" class="intro-overlay" role="dialog" aria-modal="true">
+        <div class="intro-card">
+          <div class="intro-left">
+            <h2 id="introTitle">Welcome</h2>
+            <p id="introSub">A tiny tool to make Qualtrics exports easy.</p>
+            <div class="intro-actions">
+              <label class="remember"><input type="checkbox" id="rememberCheck"> Don't show again</label>
+              <div style="height:8px"></div>
+              <input id="nameInput" type="text" placeholder="Your name (optional)" />
+              <div class="intro-buttons">
+                <button id="introContinue" class="btn btn-secondary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="intro-right">👋</div>
+        </div>
+      </div>`;
+
+      document.body.insertAdjacentHTML('beforeend', introHtml);
+      const overlay = document.getElementById('introOverlay');
+      const introTitle = document.getElementById('introTitle');
+      const introSub = document.getElementById('introSub');
+      const nameInput = document.getElementById('nameInput');
+      const rememberCheck = document.getElementById('rememberCheck');
+      const introContinue = document.getElementById('introContinue');
+
+      // Styles for overlay
+      const style = document.createElement('style');
+      style.textContent = `
+        .intro-overlay { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; z-index:60; background: linear-gradient(180deg, rgba(2,12,10,0.35), rgba(2,12,10,0.5)); }
+        .intro-card { width: min(560px, 92%); background: linear-gradient(180deg, rgba(6,78,59,0.95), rgba(8,60,48,0.98)); border-radius:14px; padding:18px; display:flex; gap:12px; align-items:center; box-shadow:0 18px 60px rgba(0,0,0,0.6); border:1px solid rgba(16,185,129,0.14); }
+        .intro-left { flex:1; color:var(--text-main); }
+        .intro-left h2 { margin:0 0 6px 0; font-size:20px; }
+        .intro-left p { margin:0 0 12px 0; color:var(--text-muted); font-size:13px; }
+        .intro-actions { display:flex; flex-direction:column; gap:8px; }
+        .intro-actions input[type=text] { padding:8px 10px; border-radius:8px; border:1px solid rgba(16,185,129,0.18); background:rgba(6,78,59,0.6); color:var(--text-main); }
+        .intro-buttons { display:flex; gap:8px; margin-top:6px; }
+        .intro-right { font-size:46px; padding:8px 12px; border-radius:10px; background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(16,185,129,0.06)); color: #eafff0; }
+        .remember { color:var(--text-muted); font-size:12px; }
+      `;
+      document.head.appendChild(style);
+
+      function getStoredName() { return localStorage.getItem('rts_userName'); }
+      function setStoredName(v) { if (v) localStorage.setItem('rts_userName', v); else localStorage.removeItem('rts_userName'); }
+      function hideIntro() { overlay.style.display = 'none'; localStorage.setItem('rts_seenIntro', '1'); }
+
+      // Decide whether to show
+      const qname = qs('name');
+      const stored = getStoredName();
+      const hideFlag = localStorage.getItem('rts_hideIntro');
+
+      if (hideFlag === '1' && !qname) {
+        overlay.style.display = 'none';
+      } else {
+        overlay.style.display = 'flex';
+        // populate name
+        if (qname) {
+          introTitle.textContent = `Welcome, ${decodeURIComponent(qname)}`;
+          nameInput.value = decodeURIComponent(qname);
+        } else if (stored) {
+          introTitle.textContent = `Welcome back, ${stored}`;
+          nameInput.value = stored;
+        } else {
+          introTitle.textContent = 'Welcome';
+        }
+      }
+
+      // clicking the emoji pulses the corner viz
+      document.querySelector('.intro-right').addEventListener('click', () => {
+        if (window.cornerVizPulse) window.cornerVizPulse();
+      });
+
+      introContinue.addEventListener('click', () => {
+        const v = nameInput.value && nameInput.value.trim();
+        if (v) {
+          introTitle.textContent = `Welcome, ${v}`;
+          setStoredName(v);
+        }
+        if (rememberCheck.checked) {
+          localStorage.setItem('rts_hideIntro', '1');
+        }
+        hideIntro();
+      });
+
+      // If URL provided a name but user didn't click, still set stored name silently
+      if (qname && !stored) setStoredName(decodeURIComponent(qname));
+    })();
   </script>
 </body>
 </html>
