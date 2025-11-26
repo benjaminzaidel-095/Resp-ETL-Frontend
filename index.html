@@ -305,6 +305,22 @@
       color: var(--text-muted);
     }
 
+    .upload-link {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 12px;
+      margin-left: 4px;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .upload-link:hover {
+      opacity: 0.85;
+    }
+
+
     .upload-filename {
       font-size: 12px;
       color: var(--accent);
@@ -544,7 +560,12 @@
               </div>
               <div>
                 <div class="upload-title">Drop your CSV here</div>
-                <div class="upload-hint">or click to browse</div>
+                <div class="upload-hint">
+                  or click to browse
+                  <button type="button" id="btnQualtricsSource" class="upload-link">
+                    or pull latest from Qualtrics
+                  </button>
+                </div>
               </div>
               <div id="filename" class="upload-filename"></div>
             </div>
@@ -625,6 +646,8 @@
     const statusEl = document.getElementById("status");
     const btnAccount = document.getElementById("btnAccount");
     const btnTest = document.getElementById("btnTest");
+    const btnQualtricsSource = document.getElementById("btnQualtricsSource");
+
 
     function setStatus(message, type) {
       statusEl.className = "status";
@@ -805,6 +828,46 @@
       e.preventDefault();
       callEndpoint("/process/tests");
     });
+
+    // Pull raw CSV directly from Qualtrics and preload it into the upload area
+btnQualtricsSource.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  setButtonsDisabled(true);
+  setStatus("Pulling latest export from Qualtrics…", null);
+
+  try {
+    const res = await fetch(API_BASE + "/fetch-qualtrics-csv", {
+      method: "POST",
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error("Qualtrics fetch failed: " + text);
+    }
+
+    const blob = await res.blob();
+    // Create a synthetic File and inject it into the file input
+    const file = new File([blob], "qualtrics_export.csv", { type: "text/csv" });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+
+    // Update UI to look as if the user uploaded a file
+    filenameEl.textContent = "📄 " + file.name;
+    markUploadArea(true);
+    document.body.setAttribute("data-file-ready", "1");
+    if (window.cornerVizPulse) window.cornerVizPulse();
+
+    setStatus("Loaded latest Qualtrics export.", "success");
+  } catch (err) {
+    console.error(err);
+    setStatus("Error: " + err.message, "error");
+  } finally {
+    setButtonsDisabled(false);
+  }
+});
+
 
     /* Intro overlay / personalization */
     (function () {
